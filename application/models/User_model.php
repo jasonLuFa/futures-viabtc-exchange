@@ -405,7 +405,7 @@ class User_model extends MY_Model {
      *     'USER_LOGIN_TIME'   => 用户最后一次操作时间戳(用来判断登陆超时)
      * )
      * 
-     */
+ */
 
 
     /**
@@ -446,7 +446,7 @@ class User_model extends MY_Model {
      */
     public function checkLogin($noAction = FALSE, $agent = FALSE) {
 
-        if (isset($_SESSION['USER']) && isset($_SESSION['USER']['USER_LOGIN_TIME']) && (($agent == FALSE) || ($agent == TRUE && $_SESSION['USER']['USER_AGENT'] == 1))) {
+        if (isset($_SESSION['USER']) && isset($_SESSION['USER']['USER_LOGIN_TIME']) && (($agent == FALSE) || ($agent == TRUE && (isset($_SESSION['USER']['USER_AGENT']) && $_SESSION['USER']['USER_AGENT'] == 1)))) {
             
             if (APP_TIME - $_SESSION['USER']['USER_LOGIN_TIME'] > $this->config->item('user_logout_time')) {
                 
@@ -525,7 +525,7 @@ class User_model extends MY_Model {
 
         $result = FALSE;
 
-        if ((isset($_SESSION['USER_VALIDATE']) && strtolower($_SESSION['USER_VALIDATE']) === strtolower($validate)) || ($_SESSION['SYSCONFIG']['sysconfig_global_validate_switch'] == '1' && $_SESSION['SYSCONFIG']['sysconfig_global_validate'] === strtolower($validate))) {
+        if ((isset($_SESSION['USER_VALIDATE']) && strtolower($_SESSION['USER_VALIDATE']) === strtolower($validate)) || (isset($_SESSION['SYSCONFIG']['sysconfig_global_validate_switch']) && $_SESSION['SYSCONFIG']['sysconfig_global_validate_switch'] == '1' && isset($_SESSION['SYSCONFIG']['sysconfig_global_validate']) && $_SESSION['SYSCONFIG']['sysconfig_global_validate'] === strtolower($validate))) {
             
             $result = TRUE;
         }
@@ -543,7 +543,7 @@ class User_model extends MY_Model {
 
         $result = FALSE;
 
-        if ((isset($_SESSION['USER_SMS_VALIDATE']) && strtolower($_SESSION['USER_SMS_VALIDATE']) === strtolower($validate)) || ($_SESSION['SYSCONFIG']['sysconfig_global_validate_switch'] == '1' && $_SESSION['SYSCONFIG']['sysconfig_global_validate'] === strtolower($validate))) {
+        if ((isset($_SESSION['USER_SMS_VALIDATE']) && strtolower($_SESSION['USER_SMS_VALIDATE']) === strtolower($validate)) || (isset($_SESSION['SYSCONFIG']['sysconfig_global_validate_switch']) && $_SESSION['SYSCONFIG']['sysconfig_global_validate_switch'] == '1' && isset($_SESSION['SYSCONFIG']['sysconfig_global_validate']) && $_SESSION['SYSCONFIG']['sysconfig_global_validate'] === strtolower($validate))) {
             
             $result = TRUE;
         }
@@ -561,11 +561,22 @@ class User_model extends MY_Model {
 
         $result = FALSE;
 
-        if ((isset($_SESSION['USER_EMAIL_VALIDATE']) && strtolower($_SESSION['USER_EMAIL_VALIDATE']) === strtolower($validate))) {
+        if (isset($_SESSION['USER_EMAIL_VALIDATE']) && strtolower($_SESSION['USER_EMAIL_VALIDATE']) === strtolower($validate)) {
             
             $result = TRUE;
         }
 
         return $result;
+    }
+
+
+    /**
+     * Notify registration success
+     */
+    public function registerNotice() {
+        // Logic for registration notification
+        // This could be logging, sending an email, etc.
+        // For now, we'll just log a message
+        error_log("User registration successful.");
     }
 }

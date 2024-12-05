@@ -171,18 +171,66 @@ class Common extends MY_Controller {
             if ($this->user_model->checkImageValidate($_POST["validate"])) {
                 
                 $email = $_POST["email"];
-
                 if (checkEmailFomat($email)) {
-
-                }else{
-
+                    // Generate validation code
+                    $code = sprintf("%06d", mt_rand(0, 999999));
+                    
+                    // Load email library
+                    $this->load->library('email');
+                    
+                    // Configure email settings
+                    $config = array(
+                        'protocol' => 'smtp',
+                        'smtp_host' => 'mailhog',
+                        'smtp_port' => 1025,
+                        'smtp_timeout' => 30,
+                        'smtp_crypto' => '',
+                        'smtp_user' => '',     // No authentication needed for Mailhog
+                        'smtp_pass' => '',     // No authentication needed for Mailhog
+                        'mailtype' => 'html',
+                        'charset' => 'utf-8',
+                        'wordwrap' => TRUE,
+                        'newline' => "\r\n",
+                        'validate' => TRUE
+                    );
+                    
+                    $this->email->initialize($config);
+                    
+                    // Clear any previous email data
+                    $this->email->clear();
+                    
+                    $this->email->from('noreply@example.com', 'Futures Exchange');
+                    $this->email->to($email);
+                    $this->email->subject('Email Verification Code');
+                    $this->email->message('<html><body><h2>Verification Code</h2><p>Your verification code is: <strong>' . $code . '</strong></p></body></html>');
+                    
+                    try {
+                        if ($this->email->send(FALSE)) {
+                            // Store the code in session for validation
+                            $_SESSION['USER_EMAIL_VALIDATE'] = $code;
+                            $_SESSION['EMAIL_VALIDATE_TIME'] = time();
+                            
+                            $result["status"] = TRUE;
+                            $result["message"] = lang('controller_common_email_validate_2');
+                            
+                            // Debug information
+                            error_log("Email sent successfully to: " . $email);
+                            error_log("Verification code: " . $code);
+                        } else {
+                            error_log("Email sending failed: " . $this->email->print_debugger(['headers']));
+                            $result["message"] = "Failed to send email. Please try again.";
+                        }
+                    } catch (Exception $e) {
+                        error_log("Email exception: " . $e->getMessage());
+                        $result["message"] = "Error sending email: " . $e->getMessage();
+                    }
+                } else {
                     $result["message"] = lang('controller_common_email_validate_3');
                 }
-            }else{
-
+            } else {
                 $result["message"] = lang('controller_common_email_validate_4');
             }
-
+            
             echo json_encode($result, JSON_UNESCAPED_UNICODE);
         }
     }
